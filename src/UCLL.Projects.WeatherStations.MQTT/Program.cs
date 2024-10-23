@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using UCLL.Projects.WeatherStations.MQTT.Services;
+using UCLL.Projects.WeatherStations.MQTT.Settings;
 
 namespace UCLL.Projects.WeatherStations.MQTT;
 
@@ -27,6 +30,12 @@ internal static class Program
             })
             .ConfigureServices((hostBuilderContext, services) =>
             {
+                IConfiguration configuration = hostBuilderContext.Configuration;
+
+                services.Configure<MqttSettings>(configuration.GetSection("MQTT"));
+
+                services.AddHostedService<MqttSubscribeService>();
+
                 /*
                  * add mqtt service
                  * add task queue + service
