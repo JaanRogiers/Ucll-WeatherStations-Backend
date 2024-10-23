@@ -1,64 +1,52 @@
-﻿using System.Text;
-using MQTTnet;
-using MQTTnet.Client;
-
-/*
-    dit is een manier om mqtt te gebruiken in c#
-    ik ben niet zeker dat dit een goede manier is om dit te doen
-        er is namelijk niet veel structuur, hier ben ik nog mee bezig
- */
-
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace UCLL.Projects.WeatherStations.MQTT;
 
-internal class Publisher
+internal static class Program
 {
     private static async Task Main(string[] args)
     {
-        string broker = "www.lukaslipkens.be";
-        int port = 1883;
-        string clientId = Guid.NewGuid().ToString();
-        string username = "station";
-        string password = "Elo-Ict-2024";
-        string topic = "station/data/#";
+        IHost host = Host.CreateDefaultBuilder()
+            .ConfigureHostConfiguration(hostConfigBuilder =>
+            {
+                //hostConfigBuilder.SetBasePath(Directory.GetCurrentDirectory());
+            })
+            .ConfigureAppConfiguration((hostBuilderContext, appConfigBuilder) =>
+            {
+                IHostEnvironment environment = hostBuilderContext.HostingEnvironment;
 
-        MqttFactory factory = new MqttFactory();
-        IMqttClient? mqttClient = factory.CreateMqttClient();
+                appConfigBuilder.Sources.Clear();
 
-        MqttClientOptions? options = new MqttClientOptionsBuilder()
-            .WithClientId(clientId)
-            .WithTcpServer(broker, port)
-            .WithCredentials(username, password)
-            .WithCleanSession()
+                //appConfigBuilder.SetBasePath(environment.ContentRootPath);
+                appConfigBuilder.AddConfiguration(hostBuilderContext.Configuration);
+                appConfigBuilder.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                appConfigBuilder.AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+                appConfigBuilder.AddEnvironmentVariables(prefix: "WEATHERSTATIONS_MQTT_");
+            })
+            .ConfigureServices((hostBuilderContext, services) =>
+            {
+                /*
+                 * add mqtt service
+                 * add task queue + service
+                 * add dbcontext
+                 */
+            })
+            .ConfigureLogging(logBuilder =>
+            {
+                logBuilder.SetMinimumLevel(LogLevel.Information);
+                logBuilder.ClearProviders();
+
+                logBuilder.AddConsole();
+            })
             .Build();
 
-        MqttClientConnectResult? connectionResult = mqttClient.ConnectAsync(options).Result;
-
-        if (connectionResult.ResultCode == MqttClientConnectResultCode.Success)
-        {
-            Console.WriteLine("Connected to MQTT broker");
-            await mqttClient.SubscribeAsync(topic);
-
-            mqttClient.ApplicationMessageReceivedAsync += e =>
-            {
-                Console.WriteLine("Received message on topic: " + e.ApplicationMessage.Topic);
-                Console.WriteLine($"Received message: {Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment)}");
-
-                // hier bericht verwerken
-
-
-                return Task.CompletedTask;
-            };
-        }
-        else
-        {
-            Console.WriteLine("Failed to connect to MQTT broker");
-            return;
-        }
-
-        while (true)
-        {
-
-        }
+        await host.RunAsync(); // blocks until the host is shutdown
+        /*
+        await host.StartAsync(); // doesn't block
+        Console.WriteLine("Host started...");
+        await host.WaitForShutdownAsync();
+        */
     }
 }
