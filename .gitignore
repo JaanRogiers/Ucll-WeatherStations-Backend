@@ -368,6 +368,9 @@ FodyWeavers.xsd
 /.vscode/
 
 **/.env
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.Production.json
 
 /docker-data/mosquitto/data/
 /docker-data/mosquitto/log/
