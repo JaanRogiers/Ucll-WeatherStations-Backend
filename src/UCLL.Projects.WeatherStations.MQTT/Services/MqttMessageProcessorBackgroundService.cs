@@ -46,6 +46,15 @@ public class MqttMessageProcessorBackgroundService(ILogger<MqttMessageProcessorB
 
     private async Task ProcessMqttMessageAsync(MqttMessage mqttMessage, CancellationToken cancellationToken)
     {
-        // Process the message
+        // 1) check topic (measurement or location)
+
+        // 2) parse payload
+        // 2.1) that that is json
+        // 2.2) check for valid format
+        // 2.3) parse/deserialize to object
+
+        // 3) store in db
+
+        // ??? 4) live data websockets ???
     }
 }
