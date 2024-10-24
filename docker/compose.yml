@@ -22,7 +22,11 @@
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: weatherstations_db_mssql
     user: root # don't like this but no other fix at the moment
-    command: /bin/bash -c "sed -i 's/\r$//' /init/init-db.sh && chmod +x /init/init-db.sh && /bin/bash /init/init-db.sh"
+    command: /bin/bash -c "
+        sed -i 's/\r$//' /init/init.sh &&
+        chmod +x /init/init.sh &&
+        /bin/bash /init/init.sh
+      "
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=${MSSQL_SERVERADMIN_PASSWORD}
@@ -38,9 +42,10 @@
     volumes:
       - mssqldata:/var/opt/mssql
       - ../docker-data/mssql/init:/init:rw
+      - ../docker-data/mssql/healthcheck:/healthcheck:rw
       - ../docker-data/mssql/log:/var/opt/mssql/log:rw
     healthcheck:
-      test: [ "CMD", "pidof", "sqlservr" ]
+      test: [ "CMD", "/bin/bash", "/healthcheck/script.sh" ]
       interval: 10s
       timeout: 5s
       retries: 5
