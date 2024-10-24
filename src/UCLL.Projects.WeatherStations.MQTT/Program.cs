@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using UCLL.Projects.WeatherStations.MQTT.Interfaces.Services;
 using UCLL.Projects.WeatherStations.MQTT.Services;
 using UCLL.Projects.WeatherStations.MQTT.Settings;
 
@@ -31,16 +32,13 @@ internal static class Program
             .ConfigureServices((hostBuilderContext, services) =>
             {
                 IConfiguration configuration = hostBuilderContext.Configuration;
-
                 services.Configure<MqttSettings>(configuration.GetSection("MQTT"));
 
-                services.AddHostedService<MqttSubscribeHostedService>();
+                // TODO: add dbcontext
 
-                /*
-                 * add mqtt service
-                 * add task queue + service
-                 * add dbcontext
-                 */
+                services.AddSingleton<IMqttMessageQueue, MqttMessageQueue>();
+                services.AddHostedService<MqttSubscribeHostedService>();
+                services.AddHostedService<MqttMessageProcessorBackgroundService>();
             })
             .ConfigureLogging(logBuilder =>
             {
