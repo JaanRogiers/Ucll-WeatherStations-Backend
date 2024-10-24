@@ -34,7 +34,7 @@ internal static class Program
 
                 services.Configure<MqttSettings>(configuration.GetSection("MQTT"));
 
-                services.AddHostedService<MqttSubscribeService>();
+                services.AddHostedService<MqttSubscribeHostedService>();
 
                 /*
                  * add mqtt service

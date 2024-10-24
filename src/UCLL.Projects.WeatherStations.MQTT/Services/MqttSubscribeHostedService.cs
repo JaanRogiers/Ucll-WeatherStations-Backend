@@ -9,9 +9,9 @@ using UCLL.Projects.WeatherStations.MQTT.Settings;
 
 namespace UCLL.Projects.WeatherStations.MQTT.Services;
 
-public class MqttSubscribeService(ILogger<MqttSubscribeService> logger, IOptions<MqttSettings> mqttOptions) : IHostedService
+public class MqttSubscribeHostedService(ILogger<MqttSubscribeHostedService> logger, IOptions<MqttSettings> mqttOptions) : IHostedService
 {
-    private readonly ILogger<MqttSubscribeService> _logger = logger;
+    private readonly ILogger<MqttSubscribeHostedService> _logger = logger;
     private readonly MqttSettings _mqttSettings = mqttOptions.Value;
     private readonly IMqttClient _mqttClient = new MqttFactory().CreateMqttClient();
 
