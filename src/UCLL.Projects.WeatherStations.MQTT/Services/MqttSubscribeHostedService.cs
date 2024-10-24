@@ -5,14 +5,16 @@ using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Protocol;
+using UCLL.Projects.WeatherStations.MQTT.Interfaces.Services;
 using UCLL.Projects.WeatherStations.MQTT.Settings;
 
 namespace UCLL.Projects.WeatherStations.MQTT.Services;
 
-public class MqttSubscribeHostedService(ILogger<MqttSubscribeHostedService> logger, IOptions<MqttSettings> mqttOptions) : IHostedService
+public class MqttSubscribeHostedService(ILogger<MqttSubscribeHostedService> logger, IOptions<MqttSettings> mqttOptions, IMqttMessageQueue mqttMessageQueue) : IHostedService
 {
     private readonly ILogger<MqttSubscribeHostedService> _logger = logger;
     private readonly MqttSettings _mqttSettings = mqttOptions.Value;
+    private readonly IMqttMessageQueue _mqttMessageQueue = mqttMessageQueue;
     private readonly IMqttClient _mqttClient = new MqttFactory().CreateMqttClient();
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -66,28 +68,26 @@ public class MqttSubscribeHostedService(ILogger<MqttSubscribeHostedService> logg
         return Task.CompletedTask;
     }
 
-    private Task OnMessageReceived(MqttApplicationMessageReceivedEventArgs e)
+    private async Task OnMessageReceived(MqttApplicationMessageReceivedEventArgs e)
     {
         string topic = e.ApplicationMessage.Topic;
         MqttPayloadFormatIndicator payloadFormatIndicator = e.ApplicationMessage.PayloadFormatIndicator; //idk how this works
-        ArraySegment<byte> payloadSegment = e.ApplicationMessage.PayloadSegment;
-
-        string? message = payloadSegment.Array != null
-            ? Encoding.UTF8.GetString(
-                    bytes: payloadSegment.Array,
-                    index: payloadSegment.Offset,
-                    count: payloadSegment.Count
-                )
-            : null;
+        byte[] payloadByteArray = e.ApplicationMessage.PayloadSegment.ToArray();
 
         /*
+        string? message = payloadByteArray.Length > 0
+            ? Encoding.UTF8.GetString(payloadByteArray)
+            : null;
+
         _logger.LogInformation("Received message on topic: {topic}", topic);
         _logger.LogInformation("payload format indicator: {payloadFormatIndicator}", payloadFormatIndicator);
         _logger.LogInformation("Message: {message}", message);
         */
 
-        //TODO: add to task queue    (BLOCKED: task queue not implemented)
-
-        return Task.CompletedTask;
+        await _mqttMessageQueue.EnqueueAsync(new(
+            topic: topic,
+            payloadFormatIndicator: payloadFormatIndicator,
+            payload: payloadByteArray
+        ));
     }
 }
