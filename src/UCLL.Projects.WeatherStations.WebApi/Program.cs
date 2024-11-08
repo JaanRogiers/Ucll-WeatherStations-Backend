@@ -12,6 +12,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // add automapper for the Dto's
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+
+
+
 // Add services to the container.
 builder.Services.AddScoped<IMeasurementRepository, MeasurementRepository>();
 builder.Services.AddScoped<IStationRepository, StationRepository>();
