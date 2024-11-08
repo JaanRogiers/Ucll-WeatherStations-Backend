@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build-publish_webapi:
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'live' && github.event.pull_request.head.ref == 'master'
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'live'
     runs-on: ubuntu-latest
 
     steps:
